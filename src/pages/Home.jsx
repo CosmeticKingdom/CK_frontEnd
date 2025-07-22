@@ -6,6 +6,7 @@ import faceSkin from "../assets/img/face_skin.png";
 import faceMassage from "../assets/img/face_massage.png";
 import fullMassage from "../assets/img/full_massage.png";
 import footMassage from "../assets/img/foot_massage.png";
+import { useAuth } from "../contexts/AuthContext";
 
 const REVIEWS = [
   {
@@ -32,6 +33,16 @@ const REVIEWS = [
 ];
 
 export default function Home() {
+  const { showLoginModal } = useAuth();
+  const isLoggedIn = !!localStorage.getItem("token");
+
+  const handleReservationClick = (e) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      showLoginModal();
+    }
+  };
+
   return (
     <>
       <Container>
@@ -42,7 +53,7 @@ export default function Home() {
               <div style={{ color: "#888", marginBottom: 24 }}>
                 전문 피부 관리사와 함께 나만의 특별한 피부 관리 여정을 시작하세요.
               </div>
-              <Link to="/reservation">
+              <Link to="/reservation" onClick={handleReservationClick}>
                 <Button type="primary" size="large" style={{ marginRight: 8 }}>
                   예약하기
                 </Button>

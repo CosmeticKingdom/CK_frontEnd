@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Menu, Modal, Form, Input, Button, Dropdown, Typography } from "antd";
+import { Menu, Modal, Form, Input, Button, Dropdown, Typography, message } from "antd";
 import { Link, useLocation } from "react-router-dom";
 import { UserOutlined } from "@ant-design/icons";
+import axios from "axios";
 import ckLogo from "../assets/img/ck_logo.png";
+import { useAuth } from "../contexts/AuthContext";
 
 const { Text } = Typography;
+
+axios.defaults.baseURL = "http://localhost:8080";
 
 const items = [
   { label: <Link to="/">홈</Link>, key: "/" },
@@ -17,11 +21,15 @@ const items = [
 export default function Header() {
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const { isLoginModalOpen, showLoginModal, closeLoginModal } = useAuth();
   const [modalMode, setModalMode] = useState("login");
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+    }
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
@@ -31,22 +39,54 @@ export default function Header() {
 
   const showModal = (mode) => {
     setModalMode(mode);
-    setIsModalVisible(true);
+    showLoginModal();
   };
 
-  const handleCancel = () => setIsModalVisible(false);
+  const handleCancel = () => closeLoginModal();
 
-  const onLoginFinish = (values) => {
-    setIsLoggedIn(true);
-    setIsModalVisible(false);
+  const onLoginFinish = async (values) => {
+    try {
+      const response = await axios.post("/auth/login", {
+        loginId: values.username,
+        password: values.password,
+      });
+      if (response.data && response.data.accessToken) {
+        localStorage.setItem("token", response.data.accessToken);
+        setIsLoggedIn(true);
+        closeLoginModal();
+        message.success("로그인되었습니다.");
+      } else {
+        message.error("로그인에 실패했습니다. 응답 형식을 확인해주세요.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      message.error("아이디 또는 비밀번호가 일치하지 않습니다.");
+    }
   };
 
-  const onSignupFinish = (values) => {
-    alert("회원가입이 완료되었습니다. 로그인해주세요.");
-    setModalMode("login");
+  const onSignupFinish = async (values) => {
+    try {
+      await axios.post("/auth/signup", {
+        loginId: values.username,
+        password: values.password,
+        email: values.email,
+        name: values.name,
+        phoneNumber: values.phoneNumber,
+        role: "USER", // 기본 역할을 'USER'로 설정
+      });
+      message.success("회원가입이 완료되었습니다. 로그인해주세요.");
+      setModalMode("login");
+    } catch (error) {
+      console.error("Signup error:", error);
+      message.error("회원가입에 실패했습니다. 입력 정보를 확인해주세요.");
+    }
   };
 
-  const handleLogout = () => setIsLoggedIn(false);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    message.success("로그아웃되었습니다.");
+  };
 
   const userMenuItems = (
     <Menu>
@@ -105,7 +145,9 @@ export default function Header() {
                 <UserOutlined style={{ fontSize: 24, cursor: "pointer" }} />
               </Dropdown>
             ) : (
-              <UserOutlined style={{ fontSize: 24, cursor: "pointer" }} onClick={() => showModal("login")} />
+              <Button type="text" onClick={() => showModal("login")} style={{ fontSize: 16, fontWeight: 500 }}>
+                로그인
+              </Button>
             )}
           </div>
         </div>
@@ -113,7 +155,7 @@ export default function Header() {
 
       <Modal
         title={modalMode === "login" ? "로그인" : "회원가입"}
-        open={isModalVisible}
+        open={isLoginModalOpen}
         onCancel={handleCancel}
         footer={null}
         width={FORM_WIDTH + 30}
