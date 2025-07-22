@@ -6,6 +6,7 @@ import Reservation from '../pages/Reservation';
 import Expert from '../pages/Expert';
 import Inquiry from '../pages/Inquiry';
 import MyReservations from '../pages/MyReservations';
+import UserProfile from '../pages/UserProfile';
 import { useAuth } from '../contexts/AuthContext';
 
 const PrivateRoute = () => {
@@ -28,6 +29,7 @@ export default function AppRoutes() {
       <Route element={<PrivateRoute />}>
         <Route path="/reservation" element={<Reservation />} />
         <Route path="/my-reservations" element={<MyReservations />} />
+        <Route path="/profile" element={<UserProfile />} />
       </Route>
       <Route path="/expert" element={<Expert />} />
       <Route path="/inquiry" element={<Inquiry />} />

@@ -90,6 +90,9 @@ export default function Header() {
 
   const userMenuItems = (
     <Menu>
+      <Menu.Item key="profile">
+        <Link to="/profile">내 정보</Link>
+      </Menu.Item>
       <Menu.Item key="my-reservations">
         <Link to="/my-reservations">나의 예약</Link>
       </Menu.Item>

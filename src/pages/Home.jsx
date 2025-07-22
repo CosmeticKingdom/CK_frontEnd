@@ -1,5 +1,5 @@
-import React from "react";
-import { Button, Card, Row, Col, Rate } from "antd";
+import React, { useState, useEffect } from "react";
+import { Button, Card, Row, Col, Rate, Spin } from "antd";
 import { Link } from "react-router-dom";
 import Container from "../components/Container";
 import faceSkin from "../assets/img/face_skin.png";
@@ -7,6 +7,7 @@ import faceMassage from "../assets/img/face_massage.png";
 import fullMassage from "../assets/img/full_massage.png";
 import footMassage from "../assets/img/foot_massage.png";
 import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
 
 const REVIEWS = [
   {
@@ -32,9 +33,31 @@ const REVIEWS = [
   },
 ];
 
+const serviceImages = [
+  faceMassage,
+  fullMassage,
+  footMassage,
+];
+
 export default function Home() {
   const { showLoginModal } = useAuth();
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const isLoggedIn = !!localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axios.get("/massages");
+        setServices(response.data);
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServices();
+  }, []);
 
   const handleReservationClick = (e) => {
     if (!isLoggedIn) {
@@ -91,47 +114,30 @@ export default function Home() {
             <h2>우리의 피부 관리 서비스</h2>
           </div>
 
-          <Row gutter={[24, 24]} justify="center">
-            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-              <Card hoverable bordered={false}>
-                <div style={{ textAlign: "center", marginBottom: 12 }}>
-                  <img
-                    src={faceMassage}
-                    alt="Face Massage"
-                    style={{ width: "100%", height: "auto", borderRadius: 8 }}
-                  />
-                </div>
-                <h3>기본 피부 관리</h3>
-                <p>전문가의 성실한 케어로 건강한 피부를 만들어 드립니다.</p>
-              </Card>
-            </Col>
-            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-              <Card hoverable bordered={false}>
-                <div style={{ textAlign: "center", marginBottom: 12 }}>
-                  <img
-                    src={fullMassage}
-                    alt="Full Massage"
-                    style={{ width: "100%", height: "auto", borderRadius: 8 }}
-                  />
-                </div>
-                <h3>고급 트리트먼트</h3>
-                <p>최신 기술과 프리미엄 제품으로 특별한 관리를 제공합니다.</p>
-              </Card>
-            </Col>
-            <Col xs={24} sm={24} md={8} lg={8} xl={8}>
-              <Card hoverable bordered={false}>
-                <div style={{ textAlign: "center", marginBottom: 12 }}>
-                  <img
-                    src={footMassage}
-                    alt="Foot Massage"
-                    style={{ width: "100%", height: "auto", borderRadius: 8 }}
-                  />
-                </div>
-                <h3>맞춤형 관리</h3>
-                <p>개인의 피부 타입에 맞는 맞춤 솔루션을 제공합니다.</p>
-              </Card>
-            </Col>
-          </Row>
+          {loading ? (
+            <div style={{ textAlign: "center", padding: "50px 0" }}>
+              <Spin size="large" />
+              <p>서비스 정보를 불러오는 중...</p>
+            </div>
+          ) : (
+            <Row gutter={[24, 24]} justify="center">
+              {services.slice(0, 3).map((svc, index) => (
+                <Col xs={24} sm={24} md={8} lg={8} xl={8} key={svc.id}>
+                  <Card hoverable bordered={false}>
+                    <div style={{ textAlign: "center", marginBottom: 12 }}>
+                      <img
+                        src={serviceImages[index % serviceImages.length]} // 이미지 순환
+                        alt={svc.name}
+                        style={{ width: "100%", height: "auto", borderRadius: 8 }}
+                      />
+                    </div>
+                    <h3>{svc.name}</h3>
+                    <p>{svc.description}</p>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
         </div>
       </div>
       {/* ====== 배경 확장 끝 ====== */}
