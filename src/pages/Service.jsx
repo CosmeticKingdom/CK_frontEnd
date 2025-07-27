@@ -56,13 +56,11 @@ export default function Service() {
               hoverable
               style={{ minHeight: 340, textAlign: "center" }}
               cover={
-                <div style={{ height: 200, overflow: "hidden", borderRadius: 8 }}>
-                  <img
-                    alt={svc.name}
-                    src={serviceImages[index % serviceImages.length]}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                </div>
+                <img
+                  alt={svc.name}
+                  src={serviceImages[index % serviceImages.length]} // 이미지 순환
+                  style={{ width: "100%", height: "auto", borderRadius: 8 }}
+                />
               }
             >
               <h3 style={{ margin: "12px 0" }}>{svc.name}</h3>
